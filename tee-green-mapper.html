@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tee to Green Mapper</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Source Code Pro', sans-serif;
+            font-size: 12px;
+            line-height: 1.2;
+            margin: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .content-section {
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 11px;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Source Code Pro', sans-serif;
+            font-size: 12px;
+            background: white;
+            width: 200px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .green-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .green-option {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.1s;
+            user-select: none;
+        }
+
+        .green-option:hover {
+            background: #e8eaf6;
+        }
+
+        .green-option.selected {
+            background: #e8eaf6;
+        }
+
+        .green-option input[type="checkbox"] {
+            margin-right: 5px;
+            cursor: pointer;
+            pointer-events: none;
+        }
+
+        .green-option label {
+            cursor: pointer;
+            margin: 0;
+            font-size: 12px;
+            color: #333;
+            flex: 1;
+            pointer-events: none;
+        }
+
+        button {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: 'Source Code Pro', sans-serif;
+            cursor: pointer;
+            background: #f5f5f5;
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background: #e0e0e0;
+        }
+
+        button.primary {
+            background: #e8eaf6;
+        }
+
+        button.primary:hover {
+            background: #c5cae9;
+        }
+
+        .progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #e8eaf6;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            line-height: 20px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .tee-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .tee-badge {
+            padding: 3px 5px;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 11px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+
+        .tee-badge.completed {
+            background: #f1f8e9;
+            border-color: #c5e1a5;
+        }
+
+        .tee-badge.current {
+            background: #e8eaf6;
+            border-color: #9fa8da;
+            font-weight: bold;
+        }
+
+        .stats {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .actions {
+            margin-top: 20px;
+        }
+
+        .message {
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .message.success {
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+
+        .message.info {
+            background: #e0f7fa;
+            color: #00695c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content-section">
+            <h1>Tee to Green Mapper</h1>
+            <div class="stats">Map which greens are reachable from each tee box</div>
+        </div>
+
+        <div class="content-section progress">
+            <h2>Progress</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+                <div class="progress-text" id="progressText">0/18 tees mapped</div>
+            </div>
+            <div class="tee-status" id="teeStatus"></div>
+        </div>
+
+        <div class="content-section controls">
+            <label for="teeSelect">Select Tee Box</label>
+            <select id="teeSelect">
+                <option value="">Choose a tee...</option>
+            </select>
+        </div>
+
+        <div id="mappingSection" style="display: none;">
+            <div class="content-section">
+                <h2 id="currentTeeTitle">Tee 1: Select Reachable Greens</h2>
+                <div class="stats" id="selectionCount">0 greens selected</div>
+                <div class="green-grid" id="greenGrid"></div>
+            </div>
+
+            <div class="content-section actions">
+                <button class="primary" onclick="saveTeeMapping()">Save & Next</button>
+                <button onclick="saveTeeMapping(false)">Save</button>
+                <button onclick="clearSelection()">Clear All</button>
+            </div>
+        </div>
+
+        <div id="messageArea"></div>
+
+        <div class="content-section actions">
+            <button onclick="downloadJSON()">Download JSON</button>
+            <button onclick="uploadJSON()">Load JSON</button>
+            <button onclick="resetAll()">Reset All Data</button>
+            <input type="file" id="fileInput" style="display: none;" accept=".json" onchange="handleFileUpload(event)">
+        </div>
+
+        <div class="content-section" id="nextStageSection" style="display: none;">
+            <h2>Next Step</h2>
+            <div class="stats">Mapping complete! Ready to find routing solutions.</div><br>
+            <a href="routing-solver.html"><button class="primary">Go to Routing Solver</button></a>
+            <a href="index.html"><button>Back to Home</button></a>
+        </div>
+    </div>
+
+    <script>
+        let mappingData = {};
+        let currentTee = null;
+
+        // Initialize
+        function init() {
+            // Create tee options
+            const teeSelect = document.getElementById('teeSelect');
+            for (let i = 1; i <= 18; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Tee ${i}`;
+                teeSelect.appendChild(option);
+            }
+
+            // Load saved data
+            loadFromLocalStorage();
+            updateProgress();
+            updateTeeStatus();
+
+            // Add tee select listener
+            teeSelect.onchange = function() {
+                selectTee(this.value);
+            };
+        }
+
+        function selectTee(teeNum) {
+            if (!teeNum) {
+                document.getElementById('mappingSection').style.display = 'none';
+                return;
+            }
+
+            currentTee = parseInt(teeNum);
+            document.getElementById('mappingSection').style.display = 'block';
+            document.getElementById('currentTeeTitle').textContent = `Tee ${currentTee}: Select Reachable Greens (excluding Green ${currentTee})`;
+
+            // Create green checkboxes dynamically, excluding the current tee number
+            const greenGrid = document.getElementById('greenGrid');
+            greenGrid.innerHTML = ''; // Clear existing checkboxes
+
+            const savedGreens = mappingData[`tee_${currentTee}`] || [];
+
+            for (let i = 1; i <= 18; i++) {
+                if (i === currentTee) continue; // Skip the green matching the tee number
+
+                const div = document.createElement('div');
+                div.className = 'green-option';
+                div.onclick = function() {
+                    const checkbox = this.querySelector('input');
+                    checkbox.checked = !checkbox.checked;
+                    updateSelection();
+                };
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `green${i}`;
+                checkbox.value = i;
+                checkbox.checked = savedGreens.includes(i);
+
+                const label = document.createElement('label');
+                label.htmlFor = `green${i}`;
+                label.textContent = `Green ${i}`;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                greenGrid.appendChild(div);
+            }
+
+            updateSelection();
+            updateTeeStatus();
+        }
+
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('#greenGrid input[type="checkbox"]');
+            const selected = Array.from(checkboxes).filter(cb => cb.checked).length;
+            document.getElementById('selectionCount').textContent = `${selected} green${selected !== 1 ? 's' : ''} selected`;
+
+            // Update visual state
+            document.querySelectorAll('.green-option').forEach(option => {
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        function saveTeeMapping(moveToNext = true) {
+            if (currentTee === null) return;
+
+            const checkboxes = document.querySelectorAll('#greenGrid input[type="checkbox"]');
+            const selectedGreens = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value))
+                .sort((a, b) => a - b);
+
+            mappingData[`tee_${currentTee}`] = selectedGreens;
+            saveToLocalStorage();
+            updateProgress();
+            updateTeeStatus();
+
+            showMessage(`Tee ${currentTee} saved: ${selectedGreens.length} green${selectedGreens.length !== 1 ? 's' : ''}`, 'success');
+
+            if (moveToNext) {
+                // Find next unmapped tee
+                let nextTee = null;
+                for (let i = 1; i <= 18; i++) {
+                    if (!mappingData[`tee_${i}`] || mappingData[`tee_${i}`].length === 0) {
+                        nextTee = i;
+                        break;
+                    }
+                }
+
+                if (nextTee) {
+                    document.getElementById('teeSelect').value = nextTee;
+                    selectTee(nextTee);
+                } else {
+                    showMessage('All tees mapped! Download your data.', 'info');
+                    document.getElementById('nextStageSection').style.display = 'block';
+                }
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('#greenGrid input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelection();
+        }
+
+        function updateProgress() {
+            const completed = Object.values(mappingData).filter(greens => greens && greens.length > 0).length;
+            const percentage = (completed / 18) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${completed}/18 tees mapped`;
+
+            // Show next stage section if all tees are mapped
+            if (completed === 18) {
+                document.getElementById('nextStageSection').style.display = 'block';
+            } else {
+                document.getElementById('nextStageSection').style.display = 'none';
+            }
+        }
+
+        function updateTeeStatus() {
+            const statusDiv = document.getElementById('teeStatus');
+            statusDiv.innerHTML = '';
+
+            for (let i = 1; i <= 18; i++) {
+                const badge = document.createElement('div');
+                badge.className = 'tee-badge';
+                badge.textContent = `T${i}`;
+                badge.onclick = function() {
+                    document.getElementById('teeSelect').value = i;
+                    selectTee(i);
+                };
+                badge.style.cursor = 'pointer';
+
+                if (mappingData[`tee_${i}`] && mappingData[`tee_${i}`].length > 0) {
+                    badge.classList.add('completed');
+                }
+                if (i === currentTee) {
+                    badge.classList.add('current');
+                }
+
+                statusDiv.appendChild(badge);
+            }
+        }
+
+        function downloadJSON() {
+            const dataStr = JSON.stringify(mappingData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'tee-green-mapping.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            showMessage('JSON downloaded successfully', 'success');
+        }
+
+        function uploadJSON() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    mappingData = JSON.parse(e.target.result);
+                    saveToLocalStorage();
+                    updateProgress();
+                    updateTeeStatus();
+                    if (currentTee) {
+                        selectTee(currentTee);
+                    }
+                    showMessage('Data loaded successfully', 'success');
+                } catch (error) {
+                    showMessage('Error loading JSON file', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                mappingData = {};
+                saveToLocalStorage();
+                updateProgress();
+                updateTeeStatus();
+                clearSelection();
+                showMessage('All data reset', 'info');
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('teeGreenMapping', JSON.stringify(mappingData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('teeGreenMapping');
+            if (saved) {
+                mappingData = JSON.parse(saved);
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageArea = document.getElementById('messageArea');
+            const message = document.createElement('div');
+            message.className = `message ${type} content-section`;
+            message.textContent = text;
+            messageArea.appendChild(message);
+
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

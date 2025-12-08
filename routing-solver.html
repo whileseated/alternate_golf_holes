@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Routing Solver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Source Code Pro', sans-serif;
+            font-size: 12px;
+            line-height: 1.2;
+            margin: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .content-section {
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        h2 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+
+        .stats {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: 'Source Code Pro', sans-serif;
+            cursor: pointer;
+            background: #f5f5f5;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background: #e0e0e0;
+        }
+
+        button.primary {
+            background: #e8eaf6;
+        }
+
+        button.primary:hover {
+            background: #c5cae9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .constraint-grid {
+            display: grid;
+            grid-template-columns: 120px 120px 60px;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Source Code Pro', sans-serif;
+            font-size: 12px;
+            background: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .constraint-item {
+            display: grid;
+            grid-template-columns: 120px 120px 60px;
+            gap: 5px;
+            align-items: center;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .constraint-text {
+            font-size: 12px;
+        }
+
+        .remove-btn {
+            padding: 3px 8px;
+            font-size: 11px;
+        }
+
+        .tee-options-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr 60px;
+            gap: 5px;
+            align-items: start;
+            margin-bottom: 5px;
+        }
+
+        .tee-options-item {
+            display: grid;
+            grid-template-columns: 120px 1fr 60px;
+            gap: 5px;
+            align-items: start;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .tee-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 5px;
+        }
+
+        .tee-checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .tee-checkbox-item input {
+            margin-right: 3px;
+        }
+
+        .tee-options-display {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .routing-display {
+            margin-top: 10px;
+        }
+
+        .hole-card {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            gap: 10px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            margin-bottom: 5px;
+            align-items: center;
+        }
+
+        .hole-number {
+            font-weight: bold;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .hole-info {
+            font-size: 12px;
+        }
+
+        .message {
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .message.success {
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .message.info {
+            background: #e0f7fa;
+            color: #00695c;
+        }
+
+        .solutions-count {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .solution-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content-section">
+            <h1>Golf Routing Solver</h1>
+            <div class="stats">Find valid 18-hole routings using your tee-to-green mappings</div>
+            <div class="stats">Logic: After playing to Green X, next hole starts at Tee (X+1)</div>
+        </div>
+
+        <div class="content-section">
+            <h2>Load Mapping Data</h2>
+            <button onclick="loadMappingFile()">Load tee-green-mapping.json</button>
+            <div class="stats" id="dataStatus">No data loaded</div>
+            <input type="file" id="mappingFileInput" style="display: none;" accept=".json" onchange="handleMappingUpload(event)">
+        </div>
+
+        <div id="constraintsSection" style="display: none;">
+            <div class="content-section">
+                <h2>Constraints (Optional)</h2>
+                <div class="stats">Force specific tees to play to specific greens</div>
+
+                <div class="constraint-grid">
+                    <select id="constraintTee">
+                        <option value="">Select Tee...</option>
+                    </select>
+                    <select id="constraintGreen">
+                        <option value="">Select Green...</option>
+                    </select>
+                    <button onclick="addConstraint()">Add</button>
+                </div>
+
+                <div id="constraintsList"></div>
+            </div>
+
+            <div class="content-section">
+                <h2>Next Tee Options (Optional)</h2>
+                <div class="stats">Override default next tee logic. After finishing at a green, allow multiple possible next tees.</div>
+
+                <div class="tee-options-grid">
+                    <select id="optionGreen">
+                        <option value="">After Green...</option>
+                    </select>
+                    <div id="teeCheckboxes" class="tee-checkboxes"></div>
+                    <button onclick="addTeeOption()">Add</button>
+                </div>
+
+                <div id="teeOptionsList"></div>
+
+                <div style="margin-top: 10px;">
+                    <button onclick="exportTeeOptions()">Export Options</button>
+                    <button onclick="importTeeOptions()">Import Options</button>
+                    <button onclick="clearAllTeeOptions()">Clear All</button>
+                    <input type="file" id="teeOptionsFileInput" style="display: none;" accept=".json" onchange="handleTeeOptionsUpload(event)">
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h2>Solver</h2>
+                <label for="startingTee">Starting Tee</label>
+                <select id="startingTee">
+                    <option value="1">Tee 1</option>
+                </select>
+                <div style="margin-top: 10px;">
+                    <button class="primary" onclick="solveRouting()">Find Routings</button>
+                    <button onclick="clearSolutions()">Clear Results</button>
+                </div>
+                <div class="stats">Finds all valid 18-hole sequences where each green leads to the next tee (Green X → Tee X+1)</div>
+                <div id="solverStatus"></div>
+            </div>
+        </div>
+
+        <div id="solutionsSection" style="display: none;">
+            <div class="content-section">
+                <h2>Solutions</h2>
+                <div class="solution-nav">
+                    <button onclick="previousSolution()">&lt; Prev</button>
+                    <span id="solutionCounter">Solution 1 of X</span>
+                    <button onclick="nextSolution()">Next &gt;</button>
+                </div>
+                <button onclick="downloadCurrentSolution()">Download Current Solution</button>
+                <button onclick="downloadAllSolutions()">Download All Solutions</button>
+                <div class="routing-display" id="routingDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mappingData = {};
+        let constraints = {};
+        let nextTeeOptions = {};
+        let solutions = [];
+        let currentSolutionIndex = 0;
+        let maxPathLength = 0;
+
+        function loadMappingFile() {
+            document.getElementById('mappingFileInput').click();
+        }
+
+        function handleMappingUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    mappingData = JSON.parse(e.target.result);
+                    initializeConstraints();
+                    loadTeeOptionsFromStorage();
+                    document.getElementById('dataStatus').textContent = 'Data loaded successfully';
+                    document.getElementById('constraintsSection').style.display = 'block';
+                } catch (error) {
+                    document.getElementById('dataStatus').textContent = 'Error loading file';
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function initializeConstraints() {
+            const teeSelect = document.getElementById('constraintTee');
+            const greenSelect = document.getElementById('constraintGreen');
+            const optionGreenSelect = document.getElementById('optionGreen');
+            const startingTeeSelect = document.getElementById('startingTee');
+
+            teeSelect.innerHTML = '<option value="">Select Tee...</option>';
+            greenSelect.innerHTML = '<option value="">Select Green...</option>';
+            optionGreenSelect.innerHTML = '<option value="">After Green...</option>';
+            startingTeeSelect.innerHTML = '';
+
+            for (let i = 1; i <= 18; i++) {
+                const teeOption = document.createElement('option');
+                teeOption.value = i;
+                teeOption.textContent = `Tee ${i}`;
+                teeSelect.appendChild(teeOption);
+
+                const greenOption = document.createElement('option');
+                greenOption.value = i;
+                greenOption.textContent = `Green ${i}`;
+                greenSelect.appendChild(greenOption);
+
+                const optionGreenOption = document.createElement('option');
+                optionGreenOption.value = i;
+                optionGreenOption.textContent = `Green ${i}`;
+                optionGreenSelect.appendChild(optionGreenOption);
+
+                const startingTeeOption = document.createElement('option');
+                startingTeeOption.value = i;
+                startingTeeOption.textContent = `Tee ${i}`;
+                startingTeeSelect.appendChild(startingTeeOption);
+            }
+
+            // Initialize tee checkboxes
+            const teeCheckboxes = document.getElementById('teeCheckboxes');
+            teeCheckboxes.innerHTML = '';
+            for (let i = 1; i <= 18; i++) {
+                const div = document.createElement('div');
+                div.className = 'tee-checkbox-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `tee-opt-${i}`;
+                checkbox.value = i;
+
+                const label = document.createElement('label');
+                label.htmlFor = `tee-opt-${i}`;
+                label.textContent = `T${i}`;
+                label.style.cursor = 'pointer';
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                teeCheckboxes.appendChild(div);
+            }
+        }
+
+        function addConstraint() {
+            const tee = parseInt(document.getElementById('constraintTee').value);
+            const green = parseInt(document.getElementById('constraintGreen').value);
+
+            if (!tee || !green) {
+                alert('Please select both tee and green');
+                return;
+            }
+
+            if (tee === green) {
+                alert('Tee and green cannot be the same number');
+                return;
+            }
+
+            // Check if this tee can actually reach this green
+            const availableGreens = mappingData[`tee_${tee}`] || [];
+            if (!availableGreens.includes(green)) {
+                alert(`Tee ${tee} cannot reach Green ${green} according to your mapping data`);
+                return;
+            }
+
+            constraints[tee] = green;
+            updateConstraintsList();
+
+            // Reset selects
+            document.getElementById('constraintTee').value = '';
+            document.getElementById('constraintGreen').value = '';
+        }
+
+        function removeConstraint(tee) {
+            delete constraints[tee];
+            updateConstraintsList();
+        }
+
+        function updateConstraintsList() {
+            const list = document.getElementById('constraintsList');
+            list.innerHTML = '';
+
+            const constraintKeys = Object.keys(constraints).map(Number).sort((a, b) => a - b);
+
+            if (constraintKeys.length === 0) {
+                return;
+            }
+
+            constraintKeys.forEach(tee => {
+                const div = document.createElement('div');
+                div.className = 'constraint-item';
+
+                const text = document.createElement('div');
+                text.className = 'constraint-text';
+                text.textContent = `Tee ${tee}`;
+                text.style.gridColumn = '1';
+
+                const text2 = document.createElement('div');
+                text2.className = 'constraint-text';
+                text2.textContent = `Green ${constraints[tee]}`;
+                text2.style.gridColumn = '2';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'X';
+                removeBtn.className = 'remove-btn';
+                removeBtn.onclick = () => removeConstraint(tee);
+                removeBtn.style.gridColumn = '3';
+
+                div.appendChild(text);
+                div.appendChild(text2);
+                div.appendChild(removeBtn);
+                list.appendChild(div);
+            });
+        }
+
+        function addTeeOption() {
+            const green = parseInt(document.getElementById('optionGreen').value);
+
+            if (!green) {
+                alert('Please select a green');
+                return;
+            }
+
+            // Get selected tees
+            const selectedTees = [];
+            for (let i = 1; i <= 18; i++) {
+                const checkbox = document.getElementById(`tee-opt-${i}`);
+                if (checkbox.checked) {
+                    selectedTees.push(i);
+                }
+            }
+
+            if (selectedTees.length === 0) {
+                alert('Please select at least one tee');
+                return;
+            }
+
+            // Always include the default next tee
+            const defaultNextTee = (green % 18) + 1;
+            if (!selectedTees.includes(defaultNextTee)) {
+                selectedTees.push(defaultNextTee);
+            }
+
+            nextTeeOptions[green] = selectedTees.sort((a, b) => a - b);
+            saveTeeOptionsToStorage();
+            updateTeeOptionsList();
+
+            // Reset
+            document.getElementById('optionGreen').value = '';
+            for (let i = 1; i <= 18; i++) {
+                document.getElementById(`tee-opt-${i}`).checked = false;
+            }
+        }
+
+        function removeTeeOption(green) {
+            delete nextTeeOptions[green];
+            saveTeeOptionsToStorage();
+            updateTeeOptionsList();
+        }
+
+        function updateTeeOptionsList() {
+            const list = document.getElementById('teeOptionsList');
+            list.innerHTML = '';
+
+            const optionKeys = Object.keys(nextTeeOptions).map(Number).sort((a, b) => a - b);
+
+            if (optionKeys.length === 0) {
+                return;
+            }
+
+            optionKeys.forEach(green => {
+                const div = document.createElement('div');
+                div.className = 'tee-options-item';
+
+                const text = document.createElement('div');
+                text.className = 'constraint-text';
+                text.textContent = `After Green ${green}`;
+                text.style.gridColumn = '1';
+
+                const teesList = document.createElement('div');
+                teesList.className = 'tee-options-display';
+                teesList.textContent = `Next Tees: ${nextTeeOptions[green].join(', ')}`;
+                teesList.style.gridColumn = '2';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'X';
+                removeBtn.className = 'remove-btn';
+                removeBtn.onclick = () => removeTeeOption(green);
+                removeBtn.style.gridColumn = '3';
+
+                div.appendChild(text);
+                div.appendChild(teesList);
+                div.appendChild(removeBtn);
+                list.appendChild(div);
+            });
+        }
+
+        function saveTeeOptionsToStorage() {
+            localStorage.setItem('nextTeeOptions', JSON.stringify(nextTeeOptions));
+        }
+
+        function loadTeeOptionsFromStorage() {
+            const saved = localStorage.getItem('nextTeeOptions');
+            if (saved) {
+                try {
+                    nextTeeOptions = JSON.parse(saved);
+                    updateTeeOptionsList();
+                } catch (error) {
+                    console.error('Error loading tee options from storage:', error);
+                }
+            }
+        }
+
+        function exportTeeOptions() {
+            if (Object.keys(nextTeeOptions).length === 0) {
+                alert('No tee options to export');
+                return;
+            }
+
+            const data = {
+                next_tee_options: nextTeeOptions,
+                exported_date: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'next-tee-options.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importTeeOptions() {
+            document.getElementById('teeOptionsFileInput').click();
+        }
+
+        function handleTeeOptionsUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.next_tee_options) {
+                        nextTeeOptions = data.next_tee_options;
+                        saveTeeOptionsToStorage();
+                        updateTeeOptionsList();
+                        alert('Tee options imported successfully');
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch (error) {
+                    alert('Error loading file');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllTeeOptions() {
+            if (confirm('Are you sure you want to clear all next tee options?')) {
+                nextTeeOptions = {};
+                saveTeeOptionsToStorage();
+                updateTeeOptionsList();
+            }
+        }
+
+        function solveRouting() {
+            solutions = [];
+            currentSolutionIndex = 0;
+            maxPathLength = 0;
+
+            const statusDiv = document.getElementById('solverStatus');
+            statusDiv.innerHTML = '<div class="message info">Searching for solutions...</div>';
+
+            // Use setTimeout to allow UI to update
+            setTimeout(() => {
+                const startTime = Date.now();
+                const startingTee = parseInt(document.getElementById('startingTee').value) || 1;
+                findAllRoutings();
+                const endTime = Date.now();
+
+                if (solutions.length > 0) {
+                    if (maxPathLength === 18) {
+                        statusDiv.innerHTML = `<div class="message success">Found ${solutions.length} complete 18-hole solution${solutions.length !== 1 ? 's' : ''} starting from Tee ${startingTee} (${endTime - startTime}ms)</div>`;
+                    } else {
+                        statusDiv.innerHTML = `<div class="message error">No complete 18-hole routing found starting from Tee ${startingTee}. Showing best partial solution${solutions.length !== 1 ? 's' : ''}: ${maxPathLength} holes (${endTime - startTime}ms)</div>`;
+                    }
+                    document.getElementById('solutionsSection').style.display = 'block';
+                    displaySolution(0);
+                } else {
+                    statusDiv.innerHTML = `<div class="message error">No valid routings found starting from Tee ${startingTee}. Try a different starting tee or remove some constraints.</div>`;
+                    document.getElementById('solutionsSection').style.display = 'none';
+                }
+            }, 100);
+        }
+
+        function findAllRoutings() {
+            const startingTee = parseInt(document.getElementById('startingTee').value) || 1;
+            const path = [];
+            const usedTees = new Set();
+            const usedGreens = new Set();
+            backtrack(startingTee, path, usedTees, usedGreens);
+        }
+
+        function backtrack(currentTee, path, usedTees, usedGreens) {
+            // Mark this tee as used
+            usedTees.add(currentTee);
+
+            // Get available greens for this tee
+            let availableGreens = mappingData[`tee_${currentTee}`] || [];
+
+            // If there's a constraint for this tee, only use that green
+            if (constraints[currentTee] !== undefined) {
+                availableGreens = [constraints[currentTee]];
+            }
+
+            // Try each available green
+            let foundNextMove = false;
+            for (const green of availableGreens) {
+                // Skip if this green has already been used
+                if (usedGreens.has(green)) {
+                    continue;
+                }
+
+                // Determine possible next tees
+                let possibleNextTees;
+                if (nextTeeOptions[green]) {
+                    // Use custom next tee options
+                    possibleNextTees = nextTeeOptions[green];
+                } else {
+                    // Use default: green +1 with wraparound
+                    possibleNextTees = [(green % 18) + 1];
+                }
+
+                // Try each possible next tee
+                for (const nextTee of possibleNextTees) {
+                    // Check if we've already used this tee
+                    if (usedTees.has(nextTee)) {
+                        continue;
+                    }
+
+                    foundNextMove = true;
+
+                    // Add this hole to the path
+                    path.push({ tee: currentTee, green: green });
+                    usedGreens.add(green);
+
+                    // Check if we've completed all 18 holes
+                    if (path.length === 18) {
+                        solutions.push([...path]);
+                        maxPathLength = 18;
+                        path.pop();
+                        usedGreens.delete(green);
+                        usedTees.delete(currentTee);
+                        return;
+                    }
+
+                    // Recursively continue from the next tee
+                    backtrack(nextTee, path, usedTees, usedGreens);
+
+                    // Backtrack
+                    path.pop();
+                    usedGreens.delete(green);
+                }
+            }
+
+            // If we couldn't make any more moves, this is a dead end
+            // Save this path if it's the longest we've found
+            if (!foundNextMove && path.length > 0) {
+                if (path.length > maxPathLength) {
+                    // Found a longer path, clear previous solutions
+                    maxPathLength = path.length;
+                    solutions = [[...path]];
+                } else if (path.length === maxPathLength) {
+                    // Found another path of the same length
+                    solutions.push([...path]);
+                }
+            }
+
+            // Unmark this tee
+            usedTees.delete(currentTee);
+        }
+
+        function displaySolution(index) {
+            if (index < 0 || index >= solutions.length) return;
+
+            currentSolutionIndex = index;
+            const solution = solutions[index];
+
+            const display = document.getElementById('routingDisplay');
+            display.innerHTML = '';
+
+            // Add warning if partial solution
+            if (solution.length < 18) {
+                const warning = document.createElement('div');
+                warning.className = 'message error';
+                warning.textContent = `Partial routing: ${solution.length} of 18 holes`;
+                warning.style.marginBottom = '10px';
+                display.appendChild(warning);
+            }
+
+            solution.forEach((hole, idx) => {
+                const card = document.createElement('div');
+                card.className = 'hole-card';
+
+                const number = document.createElement('div');
+                number.className = 'hole-number';
+                number.textContent = `#${idx + 1}`;
+
+                const teeInfo = document.createElement('div');
+                teeInfo.className = 'hole-info';
+                teeInfo.textContent = `Tee ${hole.tee}`;
+
+                const greenInfo = document.createElement('div');
+                greenInfo.className = 'hole-info';
+                greenInfo.textContent = `Green ${hole.green}`;
+
+                card.appendChild(number);
+                card.appendChild(teeInfo);
+                card.appendChild(greenInfo);
+                display.appendChild(card);
+            });
+
+            const counterText = solution.length === 18 ?
+                `Solution ${index + 1} of ${solutions.length}` :
+                `Partial Solution ${index + 1} of ${solutions.length} (${solution.length} holes)`;
+
+            document.getElementById('solutionCounter').textContent = counterText;
+        }
+
+        function previousSolution() {
+            if (currentSolutionIndex > 0) {
+                displaySolution(currentSolutionIndex - 1);
+            }
+        }
+
+        function nextSolution() {
+            if (currentSolutionIndex < solutions.length - 1) {
+                displaySolution(currentSolutionIndex + 1);
+            }
+        }
+
+        function clearSolutions() {
+            solutions = [];
+            currentSolutionIndex = 0;
+            document.getElementById('solutionsSection').style.display = 'none';
+            document.getElementById('solverStatus').innerHTML = '';
+        }
+
+        function downloadCurrentSolution() {
+            if (solutions.length === 0) return;
+
+            const solution = solutions[currentSolutionIndex];
+            const data = {
+                solution_number: currentSolutionIndex + 1,
+                holes_count: solution.length,
+                is_complete: solution.length === 18,
+                routing: solution
+            };
+
+            downloadJSON(data, `routing-solution-${currentSolutionIndex + 1}.json`);
+        }
+
+        function downloadAllSolutions() {
+            if (solutions.length === 0) return;
+
+            const startingTee = parseInt(document.getElementById('startingTee').value) || 1;
+
+            const data = {
+                total_solutions: solutions.length,
+                starting_tee: startingTee,
+                max_holes: maxPathLength,
+                is_complete: maxPathLength === 18,
+                constraints: constraints,
+                next_tee_options: nextTeeOptions,
+                solutions: solutions.map((sol, idx) => ({
+                    solution_number: idx + 1,
+                    holes_count: sol.length,
+                    routing: sol
+                }))
+            };
+
+            downloadJSON(data, 'all-routing-solutions.json');
+        }
+
+        function downloadJSON(data, filename) {
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
