@@ -1,4 +1,4 @@
-# Golf Alternate Holes Routing
+# Routing Tool for Alternate Golf Holes
 
 A two-stage tool for designing and solving alternate golf hole routings. Map which greens are reachable from each tee, then find valid 18-hole sequences.
 
