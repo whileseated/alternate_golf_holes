@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Alternate Holes Routing</title>
+    <title>Routing Tool for Alternate Golf Holes</title>
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -140,43 +140,10 @@
 <body>
     <div class="container">
         <div class="content-section">
-            <h1>Golf Alternate Holes Routing</h1>
+            <h1>Routing Tool for Alternate Golf Holes</h1>
             <div class="description">
-                A two-stage tool for designing and solving alternate golf hole routings.
+                A two-stage tool for designing and solving alternate golf hole routings, for playing 'cross-country'.
                 Map which greens are reachable from each tee, then find valid 18-hole sequences.
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2>Project Overview</h2>
-            <div class="description">
-                This project helps design alternate golf course routings where tees can play to non-standard greens.
-                Instead of always playing Tee 1 to Green 1, explore creative routing options like Tee 1 to Green 9.
-            </div>
-            <div class="stats">
-                Use case: Course layouts where multiple greens are accessible from a single tee,
-                creating opportunities for varied hole sequences.
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2>Two-Stage Workflow</h2>
-
-            <div class="workflow-step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <strong>Data Collection</strong> - Use the Tee-Green Mapper to record which of the 17 alternate greens
-                    (excluding the standard green) are reachable from each tee. Saves to <code>tee-green-mapping.json</code>
-                </div>
-            </div>
-
-            <div class="workflow-step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <strong>Route Finding</strong> - Use the Routing Solver to find valid 18-hole sequences.
-                    The solver ensures each tee and green is used exactly once, following the rule:
-                    after playing to Green X, the next hole starts at Tee X+1.
-                </div>
             </div>
         </div>
 
@@ -203,43 +170,6 @@
                     and partial routing display when complete sequences aren't possible.
                 </div>
                 <a href="routing-solver.html"><button>Open Solver</button></a>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2>Key Features</h2>
-            <div class="description">
-                <strong>Tee-Green Mapper:</strong>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>18 clickable tee badges for quick navigation</li>
-                    <li>Dynamic green selection (excludes matching tee number)</li>
-                    <li>Progress tracking (X/18 tees mapped)</li>
-                    <li>Auto-save to localStorage + JSON export/import</li>
-                </ul>
-            </div>
-            <div class="description">
-                <strong>Routing Solver:</strong>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>Selectable starting tee (1-18)</li>
-                    <li>Tee-to-green constraints (force specific pairings)</li>
-                    <li>Next-tee options (override default Green X → Tee X+1 logic)</li>
-                    <li>Finds all valid solutions or best partial routing</li>
-                    <li>Export solutions as JSON</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2>Routing Logic</h2>
-            <div class="description">
-                <strong>Default Rule:</strong> After finishing at Green X, the next hole starts at Tee (X+1)
-            </div>
-            <div class="stats">Example: Tee 1 → Green 9, then Tee 10 → Green Y, then Tee (Y+1) → ...</div>
-            <div class="description" style="margin-top: 10px;">
-                <strong>Constraints:</strong> Each tee used once, each green used once, exactly 18 holes
-            </div>
-            <div class="stats">
-                Green 18 wraps to Tee 1. Custom "next-tee options" allow multiple routing choices after specific greens.
             </div>
         </div>
 
