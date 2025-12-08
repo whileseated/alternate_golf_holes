@@ -2,6 +2,12 @@
 
 A two-stage tool for designing and solving alternate golf hole routings. Map which greens are reachable from each tee, then find valid 18-hole sequences.
 
+## Live Demo
+
+**🔗 [https://alternateroutings.vercel.app/](https://alternateroutings.vercel.app/)**
+
+The tool is deployed on Vercel and ready to use. No installation required - just open the link and start mapping your course's alternate routing options.
+
 ## Project Overview
 
 This project helps design alternate golf course routings where tees can play to non-standard greens. Instead of always playing Tee 1 to Green 1, explore creative routing options like Tee 1 to Green 9.
