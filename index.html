@@ -204,8 +204,28 @@
         </div>
 
         <div class="footer">
-            <a href="https://michaeldavidmurphy.com">michaeldavidmurphy.com</a> - 20251208 - 9:52 AM EST [<a href="https://github.com/whileseated/alternate_golf_holes">on github</a>]
-        </div>
+  <script>
+    // Load dynamic footer
+    fetch('includes/footer.html')
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById('footer').innerHTML = data;
+
+        // Load timestamp for this specific file
+        return fetch('includes/file-timestamps.json');
+      })
+      .then(response => response.json())
+      .then(timestamps => {
+        const filename = window.location.pathname.split('/').pop() || 'index.html';
+        const timestamp = timestamps[filename] || '20251209 - 1:51 PM';
+        document.getElementById('last-updated').textContent = timestamp;
+      })
+      .catch(err => {
+        // Fallback to static content if dynamic loading fails
+        document.getElementById('footer').innerHTML = '<a href="https://michaeldavidmurphy.com">michaeldavidmurphy.com</a> - 20251209 - 1:51 PM [<a href="https://github.com/whileseated/alt_shot">on github</a>]';
+      });
+  </script>
+          </div>
     </div>
 </body>
 </html>
